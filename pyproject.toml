@@ -1,0 +1,5 @@
+[tool.pytest.ini_options]
+# Add the repo root to sys.path so tests can `import app` regardless of how
+# pytest is invoked (bare `pytest` vs `python -m pytest`).
+pythonpath = ["."]
+testpaths = ["tests"]
