@@ -26,7 +26,6 @@ app.secret_key = os.environ.get("SECRET_KEY", "dev-only-change-me")
 
 
 def get_db():
-    """Return a per-request SQLite connection."""
     if "db" not in g:
         g.db = sqlite3.connect(DATABASE)
         g.db.row_factory = sqlite3.Row
@@ -41,7 +40,6 @@ def close_db(exception):
 
 
 def init_db():
-    """Create tables and seed data from schema.sql."""
     conn = sqlite3.connect(DATABASE)
     with open("schema.sql", "r", encoding="utf-8") as f:
         conn.executescript(f.read())

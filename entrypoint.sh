@@ -1,5 +1,4 @@
 #!/bin/sh
-# Seed the SQLite database on first boot, then start gunicorn.
 set -e
 
 if [ ! -f "$DATABASE" ]; then
