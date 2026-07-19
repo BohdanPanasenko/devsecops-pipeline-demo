@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Items</title>
+</head>
+<body>
+  <h1>Items</h1>
+  <p>Logged in as <strong>{{ username }}</strong> — <a href="{{ url_for('logout') }}">log out</a></p>
+  <table border="1" cellpadding="4">
+    <thead>
+      <tr><th>ID</th><th>Name</th><th>Owner</th></tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr><td>{{ item.id }}</td><td>{{ item.name }}</td><td>{{ item.owner }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>
