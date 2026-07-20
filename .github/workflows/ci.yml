@@ -54,7 +54,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Full history so Gitleaks scans every commit, not just the latest.
           fetch-depth: 0
 
       - name: Gitleaks
@@ -77,3 +76,20 @@ jobs:
 
       - name: Analyze
         uses: github/codeql-action/analyze@v3
+  trivy:
+    name: SCA & Image Scan (Trivy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Trivy
+        run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Dependency scan (SCA)
+        run: trivy fs --scanners vuln --severity HIGH,CRITICAL --exit-code 0 .
+
+      - name: Build image
+        run: docker build -t devsecops-demo:latest .
+
+      - name: Image scan (ignore unfixable base-image CVEs)
+        run: trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 0 devsecops-demo:latest
