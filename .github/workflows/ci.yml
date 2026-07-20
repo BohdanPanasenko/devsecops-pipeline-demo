@@ -93,3 +93,18 @@ jobs:
 
       - name: Image scan (ignore unfixable base-image CVEs)
         run: trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 0 devsecops-demo:latest
+  checkov:
+    name: IaC Scan (Checkov)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Checkov
+        run: pip install checkov
+
+      - name: Scan Terraform
+        run: checkov -d terraform --compact --soft-fail
