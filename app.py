@@ -61,10 +61,13 @@ def login():
         username = request.form.get("username", "")
         password = request.form.get("password", "")
         db = get_db()
-        user = db.execute(
-            "SELECT * FROM users WHERE username = ? AND password = ?",
-            (username, password),
-        ).fetchone()
+        # SEEDED VULN #1 (SQL injection): user input is concatenated directly
+        # into the SQL string instead of using parameters. See SEEDED_VULNS.md.
+        query = (
+            "SELECT * FROM users WHERE username = '%s' AND password = '%s'"
+            % (username, password)
+        )
+        user = db.execute(query).fetchone()
         if user:
             session["username"] = user["username"]
             return redirect(url_for("items"))
