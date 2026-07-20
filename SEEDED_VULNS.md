@@ -22,4 +22,5 @@ scanner is expected to catch it, and the expected severity.
   (CWE-89). It traces tainted input from the Flask request to the SQL sink.
 - **Expected severity:** High / Critical.
 - **Where to see the finding:** GitHub repo → **Security → Code scanning**.
-- **Status:** _to be confirmed by the next CodeQL run._
+- **Status:** ✅ Confirmed — CodeQL reported `py/sql-injection` (High) on
+  `app.py` in the Security → Code scanning tab.
