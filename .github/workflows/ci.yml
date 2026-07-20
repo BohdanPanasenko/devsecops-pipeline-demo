@@ -108,3 +108,22 @@ jobs:
 
       - name: Scan Terraform
         run: checkov -d terraform --compact --soft-fail
+  zap:
+    name: DAST (OWASP ZAP)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start the app
+        run: |
+          docker compose up -d --build
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:5000/login && break
+            echo "waiting for app..."; sleep 2
+          done
+
+      - name: ZAP baseline scan
+        run: |
+          docker run --network host -v ${{ github.workspace }}:/zap/wrk/:rw \
+            -t ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t http://localhost:5000 || true
