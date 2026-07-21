@@ -36,10 +36,13 @@ for issues no one can act on, so only *fixable* HIGH/CRITICAL vulnerabilities ga
 
 Commit `ci: enforce gate policy …` produced **4 green, 3 red** — the red checks are
 the gates correctly blocking the seeded high/critical vulnerabilities:
+https://github.com/BohdanPanasenko/devsecops-pipeline-demo/actions/runs/29792930672
 
-- ❌ Secret Scan (Gitleaks) — `leaks found: 1`
-- ❌ SCA & Image Scan (Trivy) — `urllib3` HIGH: 6
-- ❌ IaC Scan (Checkov) — `CKV_AWS_53/54/55/56` failed (hard-fail)
+<img width="645" height="358" alt="image" src="https://github.com/user-attachments/assets/4c38f2d2-4d66-4deb-bc0a-fc0e4ff7467e" />
+
+- ❌ Secret Scan (Gitleaks) — `leaks found: 1` - https://github.com/BohdanPanasenko/devsecops-pipeline-demo/actions/runs/29792930672/job/88518347524
+- ❌ SCA & Image Scan (Trivy) — `urllib3` HIGH: 6 - https://github.com/BohdanPanasenko/devsecops-pipeline-demo/actions/runs/29792930672/job/88518347606
+- ❌ IaC Scan (Checkov) — `CKV_AWS_53/54/55/56` failed (hard-fail) - https://github.com/BohdanPanasenko/devsecops-pipeline-demo/actions/runs/29792930672/job/88518347555
 - ✅ SAST (CodeQL), DAST (ZAP), Lint & Test, Validate (Terraform)
 
 A red build here is **success**: the pipeline detected and blocked the planted
