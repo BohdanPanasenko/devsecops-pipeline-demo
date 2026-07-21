@@ -56,10 +56,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Gitleaks
-        uses: gitleaks/gitleaks-action@v2
+      - name: Gitleaks (full-history scan — gate on any secret)
+        run: docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:latest detect --source=/repo --redact --exit-code 1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   codeql:
     name: SAST (CodeQL)
     runs-on: ubuntu-latest
@@ -85,14 +86,18 @@ jobs:
       - name: Install Trivy
         run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
 
-      - name: Dependency scan (SCA)
-        run: trivy fs --scanners vuln --severity HIGH,CRITICAL --exit-code 0 .
+      - name: Dependency scan — GATE (fail on HIGH/CRITICAL)
+        run: trivy fs --scanners vuln --severity HIGH,CRITICAL --exit-code 1 .
+
+      - name: Dependency scan — warn on MEDIUM (report only)
+        run: trivy fs --scanners vuln --severity MEDIUM --exit-code 0 .
 
       - name: Build image
         run: docker build -t devsecops-demo:latest .
 
-      - name: Image scan (ignore unfixable base-image CVEs)
-        run: trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 0 devsecops-demo:latest
+      - name: Image scan — GATE (fail on HIGH/CRITICAL, fixable only)
+        run: trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 devsecops-demo:latest
+        
   checkov:
     name: IaC Scan (Checkov)
     runs-on: ubuntu-latest
@@ -106,8 +111,9 @@ jobs:
       - name: Install Checkov
         run: pip install checkov
 
-      - name: Scan Terraform
-        run: checkov -d terraform --compact --soft-fail
+      - name: Scan Terraform (gate on public-access checks, warn on the rest)
+        run: checkov -d terraform --compact --soft-fail --hard-fail-on CKV_AWS_53,CKV_AWS_54,CKV_AWS_55,CKV_AWS_56
+
   zap:
     name: DAST (OWASP ZAP)
     runs-on: ubuntu-latest
