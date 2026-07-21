@@ -116,7 +116,7 @@ scanner is expected to catch it, and the expected severity.
     can't tell that showing all items is wrong.
 - **Scanner expected to catch it:** **None.** This is the pipeline's blind spot.
 - **Expected severity:** High (unauthorized data access) — yet undetected by tooling.
-- **The lesson:** automated scanning covers whole classes of technical
+- **Note:** automated scanning covers whole classes of technical
   vulnerabilities cheaply and repeatably, but it **complements rather than
   replaces** human review, threat modeling, and manual testing. Business-logic
   flaws require a human who understands what the application is *supposed* to do.
