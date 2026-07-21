@@ -24,7 +24,9 @@ scanner is expected to catch it, and the expected severity.
 - **Where to see the finding:** GitHub repo → **Security → Code scanning**.
 - **Status:** ✅ Confirmed — CodeQL reported `py/sql-injection` (High) on
   `app.py` in the Security → Code scanning tab.
-
+  
+  <img width="1920" height="968" alt="security2" src="https://github.com/user-attachments/assets/ee1d7115-65ee-4135-846b-4aad053d58aa" />
+  
 ---
 
 ## #2 — Hardcoded Secret (fake AWS credential)
@@ -44,3 +46,6 @@ scanner is expected to catch it, and the expected severity.
   the build** on any leak — so this stage turns red, which is the intended gate for secrets.
 - **Status:** ✅ Confirmed locally (`gitleaks detect` flagged `app.py:21`,
   rule `aws-access-token`); to be re-confirmed by the CI run.
+
+  <img width="1275" height="761" alt="security4" src="https://github.com/user-attachments/assets/61ccdfb0-89d1-4ab7-9f48-79d673dce4f9" />
+
