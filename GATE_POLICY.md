@@ -34,7 +34,7 @@ for issues no one can act on, so only *fixable* HIGH/CRITICAL vulnerabilities ga
 
 ## Verified enforcement run
 
-Commit `ci: enforce gate policy …` produced **4 green, 3 red** — the red checks are
+Commit `ci: enforce gate policy …` (and others after it, which can be observed in commit history) produced **4 green, 3 red** — the red checks are
 the gates correctly blocking the seeded high/critical vulnerabilities:
 https://github.com/BohdanPanasenko/devsecops-pipeline-demo/actions/runs/29792930672
 
