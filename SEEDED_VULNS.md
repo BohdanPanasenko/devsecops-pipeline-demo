@@ -71,6 +71,8 @@ scanner is expected to catch it, and the expected severity.
 - **Status:** ✅ Confirmed — the CI **SCA & Image Scan (Trivy)** job reported 6
   HIGH CVEs for `urllib3` 1.24.1 in the Dependency scan step (build stayed green;
   Trivy is report-only for now).
+  
+  <img width="1164" height="994" alt="security_trivy" src="https://github.com/user-attachments/assets/cf9d7c8b-f7b0-41c3-b0a3-7113e57546c6" />
 
 ---
 
