@@ -72,3 +72,24 @@ scanner is expected to catch it, and the expected severity.
   HIGH CVEs for `urllib3` 1.24.1 in the Dependency scan step (build stayed green;
   Trivy is report-only for now).
 
+---
+
+## #4 — Insecure Infrastructure Misconfiguration (public S3 bucket)
+
+- **Where:** [`terraform/main.tf`](terraform/main.tf) — the
+  `aws_s3_bucket_public_access_block` resource.
+- **What it is:** The four public-access guardrails were flipped from `true` to
+  `false`. Those settings are what stop an S3 bucket from ever being made public;
+  disabling them allows a public ACL or bucket policy to expose the data — the
+  classic cause of real-world S3 data leaks.
+- **Safe version (before):** all four set to `true` (bucket cannot be public).
+- **Scanner expected to catch it:** **Checkov** — `CKV_AWS_53`, `CKV_AWS_54`,
+  `CKV_AWS_55`, `CKV_AWS_56` (and `CKV2_AWS_6`).
+- **Expected severity:** High impact (public data exposure). Note: Checkov OSS
+  reports pass/fail rather than a CVSS score; this is treated as high-impact.
+- **Before/after:** Checkov failures rose from **5** (baseline best-practice gaps)
+  to **10** once the guardrails were disabled.
+- **Where to see the finding:** the **IaC Scan (Checkov)** job log.
+- **Status:** ✅ Confirmed locally (Checkov failed `CKV_AWS_53/54/55/56` +
+  `CKV2_AWS_6`); to be re-confirmed by the CI run.
+
