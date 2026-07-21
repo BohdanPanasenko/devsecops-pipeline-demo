@@ -71,7 +71,7 @@ scanner is expected to catch it, and the expected severity.
 - **Where to see the finding:** the **SCA & Image Scan (Trivy)** job log.
 - **Status:** ✅ Confirmed — the CI **SCA & Image Scan (Trivy)** job reported 6
   HIGH CVEs for `urllib3` 1.24.1 in the Dependency scan step (build stayed green;
-  Trivy is report-only for now).
+  Trivy is report-only for now). Can also see it here: https://github.com/BohdanPanasenko/devsecops-pipeline-demo/actions/runs/29790414173/job/88510790112
   
   <img width="1164" height="994" alt="security_trivy" src="https://github.com/user-attachments/assets/cf9d7c8b-f7b0-41c3-b0a3-7113e57546c6" />
 
@@ -95,7 +95,9 @@ scanner is expected to catch it, and the expected severity.
 - **Where to see the finding:** the **IaC Scan (Checkov)** job log.
 - **Status:** ✅ Confirmed — the CI **IaC Scan (Checkov)** job reported
   `Passed: 6, Failed: 10`, with `CKV_AWS_53/54/55/56` failing (build stayed green;
-  Checkov runs with `--soft-fail` until the step 7 gate).
+  Checkov runs with `--soft-fail` until the step 7 gate). Can also see it here: https://github.com/BohdanPanasenko/devsecops-pipeline-demo/actions/runs/29791109667/job/88512903816
+  
+  <img width="1299" height="974" alt="security_vuln4" src="https://github.com/user-attachments/assets/5d94ed95-bae9-4fea-a89d-060853c71c53" />
 
 ---
 
