@@ -137,8 +137,8 @@ jobs:
       - name: Install Checkov
         run: pip install checkov
 
-      - name: Scan Terraform (gate on public-access checks, warn on the rest)
-        run: checkov -d terraform --compact --soft-fail --hard-fail-on CKV_AWS_53,CKV_AWS_54,CKV_AWS_55,CKV_AWS_56
+      - name: Scan Terraform (gate + SARIF)
+        run: checkov -d terraform --compact --soft-fail --hard-fail-on CKV_AWS_53,CKV_AWS_54,CKV_AWS_55,CKV_AWS_56 -o cli -o sarif --output-file-path console,checkov.sarif
 
       - name: Upload Checkov SARIF
         if: always()
