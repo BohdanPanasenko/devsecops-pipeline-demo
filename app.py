@@ -88,6 +88,10 @@ def items():
     if not session.get("username"):
         return redirect(url_for("login"))
     db = get_db()
+    # SEEDED VULN #5 (broken access control): every logged-in user sees ALL
+    # items regardless of the `owner` column — there is no check tying items to
+    # the current user. This is a business-logic flaw NO scanner in the pipeline
+    # catches. See SEEDED_VULNS.md. (Correct behavior would filter by owner.)
     rows = db.execute("SELECT id, name, owner FROM items").fetchall()
     return render_template("items.html", items=rows, username=session["username"])
 

@@ -92,6 +92,31 @@ scanner is expected to catch it, and the expected severity.
 - **Before/after:** Checkov failures rose from **5** (baseline best-practice gaps)
   to **10** once the guardrails were disabled.
 - **Where to see the finding:** the **IaC Scan (Checkov)** job log.
-- **Status:** ✅ Confirmed locally (Checkov failed `CKV_AWS_53/54/55/56` +
-  `CKV2_AWS_6`); to be re-confirmed by the CI run.
+- **Status:** ✅ Confirmed — the CI **IaC Scan (Checkov)** job reported
+  `Passed: 6, Failed: 10`, with `CKV_AWS_53/54/55/56` failing (build stayed green;
+  Checkov runs with `--soft-fail` until the step 7 gate).
+
+---
+
+## #5 — Broken Access Control (the scanner blind spot)
+
+- **Where:** [`app.py`](app.py) — the `/items` route.
+- **What it is:** Any authenticated user sees **all** items, regardless of the
+  `owner` column. There is no authorization check linking items to the logged-in
+  user, so `alice` can see `bob`'s items. This is a **business-logic /
+  authorization** flaw (OWASP A01: Broken Access Control).
+- **Why it's the important case:** **no scanner in the pipeline catches it.**
+  - **CodeQL (SAST)** sees valid code with no dangerous sink — nothing to flag.
+  - **Trivy (SCA/image)** finds no vulnerable dependency.
+  - **Checkov (IaC)** sees no infrastructure problem.
+  - **ZAP (DAST)** has no way to know the *intended* authorization model, so it
+    can't tell that showing all items is wrong.
+- **Scanner expected to catch it:** **None.** This is the pipeline's blind spot.
+- **Expected severity:** High (unauthorized data access) — yet undetected by tooling.
+- **The lesson:** automated scanning covers whole classes of technical
+  vulnerabilities cheaply and repeatably, but it **complements rather than
+  replaces** human review, threat modeling, and manual testing. Business-logic
+  flaws require a human who understands what the application is *supposed* to do.
+- **Status:** ✅ Verified as a blind spot — present in the code, reported by none
+  of the five security stages.
 
