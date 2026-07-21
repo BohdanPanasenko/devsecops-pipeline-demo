@@ -124,6 +124,9 @@ jobs:
   checkov:
     name: IaC Scan (Checkov)
     runs-on: ubuntu-latest
+    permissions:       
+      security-events: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -136,6 +139,13 @@ jobs:
 
       - name: Scan Terraform (gate on public-access checks, warn on the rest)
         run: checkov -d terraform --compact --soft-fail --hard-fail-on CKV_AWS_53,CKV_AWS_54,CKV_AWS_55,CKV_AWS_56
+
+      - name: Upload Checkov SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: checkov.sarif
+          category: checkov
 
   zap:
     name: DAST (OWASP ZAP)
