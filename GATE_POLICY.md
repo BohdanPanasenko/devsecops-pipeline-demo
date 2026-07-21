@@ -45,6 +45,3 @@ the gates correctly blocking the seeded high/critical vulnerabilities:
 A red build here is **success**: the pipeline detected and blocked the planted
 vulnerabilities. Removing/remediating a vuln returns its stage to green — the
 detection → fix → verified-clean loop.
-
-<!-- Add screenshots: (1) the report-only run (green with findings) vs (2) this
-enforced run (red, blocked) for the before/after. -->
