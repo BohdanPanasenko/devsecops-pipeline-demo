@@ -80,23 +80,46 @@ jobs:
   trivy:
     name: SCA & Image Scan (Trivy)
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Trivy
         run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
 
-      - name: Dependency scan — GATE (fail on HIGH/CRITICAL)
-        run: trivy fs --scanners vuln --severity HIGH,CRITICAL --exit-code 1 .
-
-      - name: Dependency scan — warn on MEDIUM (report only)
-        run: trivy fs --scanners vuln --severity MEDIUM --exit-code 0 .
+      # Generate SARIF (never fail here)
+      - name: Trivy FS scan (SARIF)
+        run: trivy fs --scanners vuln --format sarif --output trivy-fs.sarif --exit-code 0 .
 
       - name: Build image
         run: docker build -t devsecops-demo:latest .
 
+      - name: Trivy image scan (SARIF)
+        run: trivy image --scanners vuln --ignore-unfixed --format sarif --output trivy-image.sarif --exit-code 0 devsecops-demo:latest
+
+      # enforce gates (fail on HIGH/CRITICAL) 
+      - name: Dependency scan — GATE (fail on HIGH/CRITICAL)
+        run: trivy fs --scanners vuln --severity HIGH,CRITICAL --exit-code 1 .
+
       - name: Image scan — GATE (fail on HIGH/CRITICAL, fixable only)
         run: trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 devsecops-demo:latest
+
+      # Publish to Security tab even though a gate failed above
+      - name: Upload FS SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-fs.sarif
+          category: trivy-fs
+
+      - name: Upload image SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-image.sarif
+          category: trivy-image
         
   checkov:
     name: IaC Scan (Checkov)
