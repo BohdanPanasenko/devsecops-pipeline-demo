@@ -42,5 +42,5 @@ scanner is expected to catch it, and the expected severity.
 - **Expected severity:** High (secret exposure).
 - **Behavior note:** unlike the report-only scanners, the Gitleaks CI job **fails
   the build** on any leak — so this stage turns red, which is the intended gate for secrets.
-- **Status:** ✅ Confirmed locally (`gitleaks detect` flagged `app.py:21`,
-  rule `aws-access-token`); to be re-confirmed by the CI run.
+- **Status:** ✅ Confirmed — Gitleaks failed the CI **Secret Scan** job with
+  rule `aws-access-token` on `app.py`, blocking the build (as intended for secrets).
