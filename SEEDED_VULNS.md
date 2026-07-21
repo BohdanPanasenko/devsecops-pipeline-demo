@@ -68,6 +68,7 @@ scanner is expected to catch it, and the expected severity.
   installed in the built image.
 - **Expected severity:** High (6 HIGH findings, 0 CRITICAL at time of writing).
 - **Where to see the finding:** the **SCA & Image Scan (Trivy)** job log.
-- **Status:** ✅ Confirmed locally (`trivy fs` reported 6 HIGH CVEs for
-  `urllib3` 1.24.1); to be re-confirmed by the CI run.
+- **Status:** ✅ Confirmed — the CI **SCA & Image Scan (Trivy)** job reported 6
+  HIGH CVEs for `urllib3` 1.24.1 in the Dependency scan step (build stayed green;
+  Trivy is report-only for now).
 

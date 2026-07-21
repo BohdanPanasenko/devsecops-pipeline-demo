@@ -18,7 +18,7 @@ from flask import (
     session,
     url_for,
 )
-# FAKE credential, seeded for the Gitleaks demo, not real
+# SEEDED VULN #2. FAKE credential, seeded for the Gitleaks demo, not real
 AWS_ACCESS_KEY_ID = "AKIAVJOYIFFIVGLCNSSW"
 
 DATABASE = os.environ.get("DATABASE", "app.db")
