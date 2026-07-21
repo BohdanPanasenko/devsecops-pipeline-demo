@@ -123,3 +123,6 @@ scanner is expected to catch it, and the expected severity.
 - **Status:** ✅ Verified as a blind spot — present in the code, reported by none
   of the five security stages.
 
+  <img width="413" height="365" alt="image" src="https://github.com/user-attachments/assets/89657a86-3f24-49cb-aec6-81bb728dcf1b" />
+
+
