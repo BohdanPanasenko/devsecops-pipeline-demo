@@ -45,7 +45,8 @@ scanner is expected to catch it, and the expected severity.
 - **Behavior note:** unlike the report-only scanners, the Gitleaks CI job **fails
   the build** on any leak — so this stage turns red, which is the intended gate for secrets.
 - **Status:** ✅ Confirmed — Gitleaks failed the CI **Secret Scan** job with
-  rule `aws-access-token` on `app.py`, blocking the build (as intended for secrets).
+  rule `aws-access-token` on `app.py`, blocking the build (as intended for secrets). 
+  Can see it also here: https://github.com/BohdanPanasenko/devsecops-pipeline-demo/actions/runs/29789649954/job/88508446927
 
   <img width="1275" height="761" alt="security4" src="https://github.com/user-attachments/assets/61ccdfb0-89d1-4ab7-9f48-79d673dce4f9" />
 
