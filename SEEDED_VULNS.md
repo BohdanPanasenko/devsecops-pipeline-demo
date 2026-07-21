@@ -24,3 +24,23 @@ scanner is expected to catch it, and the expected severity.
 - **Where to see the finding:** GitHub repo → **Security → Code scanning**.
 - **Status:** ✅ Confirmed — CodeQL reported `py/sql-injection` (High) on
   `app.py` in the Security → Code scanning tab.
+
+---
+
+## #2 — Hardcoded Secret (fake AWS credential)
+
+- **Where:** [`app.py`](app.py) — module-level constant `AWS_ACCESS_KEY_ID`.
+- **What it is:** A credential hardcoded directly in source instead of being read
+  from an environment variable or a secrets manager. Anyone with repo access
+  (it's a public repo) can read it. The value is **fake**, planted only for the demo.
+- **Why the "obvious" dummy didn't work:** a low-entropy string like
+  `dummy-not-real-12345` matches no known credential pattern, and AWS's documented
+  example key (`AKIAIOSFODNN7EXAMPLE`) is explicitly allowlisted by scanners. A
+  detectable secret must have a real credential's *shape* and a *non-allowlisted* value.
+- **Scanner expected to catch it:** **Gitleaks** — rule `aws-access-token`
+  (matches `AKIA` + 16 chars).
+- **Expected severity:** High (secret exposure).
+- **Behavior note:** unlike the report-only scanners, the Gitleaks CI job **fails
+  the build** on any leak — so this stage turns red, which is the intended gate for secrets.
+- **Status:** ✅ Confirmed locally (`gitleaks detect` flagged `app.py:21`,
+  rule `aws-access-token`); to be re-confirmed by the CI run.
