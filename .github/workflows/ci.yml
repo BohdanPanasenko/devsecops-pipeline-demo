@@ -191,3 +191,50 @@ jobs:
         with:
           sarif_file: zap.sarif
           category: zap
+
+  metrics:
+    name: Metrics (speed vs security)
+    runs-on: ubuntu-latest
+    needs: [lint-test, terraform, gitleaks, codeql, trivy, checkov, zap]
+    if: always()
+    permissions:
+      contents: write
+      actions: read
+      security-events: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch run + findings data
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs --paginate > jobs.json
+          gh api "repos/${{ github.repository }}/code-scanning/alerts?state=open&per_page=100" --paginate > alerts.json
+
+      - name: Build metrics row
+        run: |
+          TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          python3 scripts/collect_metrics.py jobs.json alerts.json "${{ github.run_id }}" "${{ github.sha }}" "$TS" > row.csv
+          echo "Row:"; cat row.csv
+
+      - name: Append to the metrics branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          HEADER="timestamp,run_id,sha,total_sec,lint_test_sec,terraform_sec,gitleaks_sec,codeql_sec,trivy_sec,checkov_sec,zap_sec,findings_total,critical,high,medium,low,unknown"
+          URL="https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+          TMP=$(mktemp -d)
+          if git clone --depth 1 --branch metrics "$URL" "$TMP" 2>/dev/null; then
+            cd "$TMP"
+          else
+            rm -rf "$TMP"; git clone --depth 1 "$URL" "$TMP"; cd "$TMP"
+            git checkout --orphan metrics
+            git rm -rf . >/dev/null 2>&1 || true
+            echo "$HEADER" > metrics.csv
+          fi
+          cat "$GITHUB_WORKSPACE/row.csv" >> metrics.csv
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add metrics.csv
+          git commit -m "metrics: run ${{ github.run_id }}"
+          git push origin metrics
