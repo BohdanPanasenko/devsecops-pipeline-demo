@@ -2,4 +2,4 @@ Flask==3.0.3
 gunicorn==22.0.0
 
 # SEEDED VULN #3 — outdated dependency with known CVEs (Trivy target). Not imported.
-urllib3==1.24.1
+urllib3==2.7.0
