@@ -1,4 +1,4 @@
-Flask==3.0.3
+Flask==3.1.3
 gunicorn==22.0.0
 
 # SEEDED VULN #3 — outdated dependency with known CVEs (Trivy target). Not imported.
