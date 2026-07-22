@@ -83,6 +83,16 @@ def logout():
     return redirect(url_for("login"))
 
 
+@app.route("/search")
+def search():
+    # SEEDED VULN #6 (reflected XSS): the `q` parameter is echoed straight into
+    # the HTML response without escaping, so a payload like ?q=<script>alert(1)
+    # </script> executes in the victim's browser. Caught at runtime by ZAP (DAST)
+    # active scan — and statically by CodeQL. See SEEDED_VULNS.md.
+    q = request.args.get("q", "")
+    return f"<html><body><h1>Search results for: {q}</h1></body></html>"
+
+
 @app.route("/items")
 def items():
     if not session.get("username"):

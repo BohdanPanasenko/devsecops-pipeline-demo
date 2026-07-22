@@ -125,4 +125,32 @@ scanner is expected to catch it, and the expected severity.
 
   <img width="413" height="365" alt="image" src="https://github.com/user-attachments/assets/89657a86-3f24-49cb-aec6-81bb728dcf1b" />
 
+---
+
+## #6 — Reflected XSS (the DAST target)
+
+- **Where:** [`app.py`](app.py) — the public `/search` route echoes the `q`
+  query parameter straight into the HTML response without escaping.
+- **What it is:** Reflected Cross-Site Scripting. A request like
+  `/search?q=<script>alert(1)</script>` returns that script in the page, so it
+  executes in the victim's browser (session theft, defacement, etc.).
+- **Why it exists:** to give **DAST a real target**. The ZAP baseline (passive)
+  scan only notices missing headers; only an **active** scan fires payloads and
+  finds an injectable flaw. So the ZAP stage was switched from `zap-baseline.py`
+  to `zap-full-scan.py` (active), and a link to `/search?q=test` was added so
+  ZAP's spider discovers the parameter.
+- **Scanner expected to catch it:** **OWASP ZAP (DAST)** — `Cross Site Scripting
+  (Reflected)` (High). **CodeQL (SAST)** is expected to flag it too
+  (`py/reflective-xss`).
+- **The headline point:** SAST and DAST catch the *same* flaw from opposite ends
+  — one by reading the source, the other by attacking the running app. ZAP's
+  active scan additionally re-discovered the **#1 SQL injection** at runtime,
+  confirming the same convergence.
+- **Expected severity:** High.
+- **Where to see the finding:** Security → Code scanning (tool `zap`), and the
+  DAST job log.
+- **Status:** ✅ Confirmed locally — ZAP full scan reported `Cross Site Scripting
+  (Reflected)` and `SQL Injection`; converter emitted them as High SARIF results.
+  To be re-confirmed by the CI run.
+
 

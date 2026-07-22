@@ -174,11 +174,11 @@ jobs:
             echo "waiting for app..."; sleep 2
           done
 
-      - name: ZAP baseline scan (JSON report)
+      - name: ZAP full (active) scan (JSON report)
         run: |
           docker run --network host -v ${{ github.workspace }}:/zap/wrk/:rw \
             -t ghcr.io/zaproxy/zaproxy:stable \
-            zap-baseline.py -t http://localhost:5000 -J zap.json || true
+            zap-full-scan.py -t http://localhost:5000 -J zap.json || true
 
       - name: Convert ZAP JSON to SARIF
         if: always()
