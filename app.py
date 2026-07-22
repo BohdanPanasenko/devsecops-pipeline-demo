@@ -1,9 +1,7 @@
 """Minimal Flask + SQLite app for the DevSecOps pipeline demo.
 
-The app is intentionally small: it exists as a vehicle for the CI/CD security
-scanning work. Step 1 keeps the code clean (parameterized queries, secret from
-env); intentional vulnerabilities are seeded later in their own commits and
-documented in SEEDED_VULNS.md.
+Remediated variant: the intentional vulnerabilities documented in SEEDED_VULNS.md
+have been fixed on this branch so the pipeline passes all gates.
 """
 
 import os
@@ -18,8 +16,7 @@ from flask import (
     session,
     url_for,
 )
-# SEEDED VULN #2. FAKE credential, seeded for the Gitleaks demo, not real
-AWS_ACCESS_KEY_ID = "AKIAVJOYIFFIVGLCNSSW"
+from markupsafe import escape
 
 DATABASE = os.environ.get("DATABASE", "app.db")
 
@@ -63,13 +60,11 @@ def login():
         username = request.form.get("username", "")
         password = request.form.get("password", "")
         db = get_db()
-        # SEEDED VULN #1 (SQL injection): user input is concatenated directly
-        # into the SQL string instead of using parameters. See SEEDED_VULNS.md.
-        query = (
-            "SELECT * FROM users WHERE username = '%s' AND password = '%s'"
-            % (username, password)
-        )
-        user = db.execute(query).fetchone()
+        # Parameterized query — the driver escapes input, preventing SQL injection.
+        user = db.execute(
+            "SELECT * FROM users WHERE username = ? AND password = ?",
+            (username, password),
+        ).fetchone()
         if user:
             session["username"] = user["username"]
             return redirect(url_for("items"))
@@ -85,11 +80,8 @@ def logout():
 
 @app.route("/search")
 def search():
-    # SEEDED VULN #6 (reflected XSS): the `q` parameter is echoed straight into
-    # the HTML response without escaping, so a payload like ?q=<script>alert(1)
-    # </script> executes in the victim's browser. Caught at runtime by ZAP (DAST)
-    # active scan — and statically by CodeQL. See SEEDED_VULNS.md.
-    q = request.args.get("q", "")
+    # Escape user input before embedding it in HTML — prevents reflected XSS.
+    q = escape(request.args.get("q", ""))
     return f"<html><body><h1>Search results for: {q}</h1></body></html>"
 
 
@@ -98,15 +90,15 @@ def items():
     if not session.get("username"):
         return redirect(url_for("login"))
     db = get_db()
-    # SEEDED VULN #5 (broken access control): every logged-in user sees ALL
-    # items regardless of the `owner` column — there is no check tying items to
-    # the current user. This is a business-logic flaw NO scanner in the pipeline
-    # catches. See SEEDED_VULNS.md. (Correct behavior would filter by owner.)
-    rows = db.execute("SELECT id, name, owner FROM items").fetchall()
+    # Scope items to the logged-in user — fixes the broken-access-control flaw.
+    rows = db.execute(
+        "SELECT id, name, owner FROM items WHERE owner = ?",
+        (session["username"],),
+    ).fetchall()
     return render_template("items.html", items=rows, username=session["username"])
 
 
 if __name__ == "__main__":
     if not os.path.exists(DATABASE):
         init_db()
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    app.run(host="127.0.0.1", port=5000)

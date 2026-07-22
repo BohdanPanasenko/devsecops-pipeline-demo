@@ -1,0 +1,7 @@
+# Gitleaks allowlist (by finding fingerprint).
+#
+# The fake AWS key seeded for the demo (SEEDED_VULNS.md #2) was removed from the
+# code on this branch, but it still exists in git *history*. In a real incident the
+# credential would be rotated and its historical occurrence acknowledged here, since
+# rewriting history is often impractical. This entry lets the full-history scan pass.
+af7e4414622252a480df130a966f4ac69a4713af:app.py:aws-access-token:22

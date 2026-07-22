@@ -28,12 +28,10 @@ resource "aws_s3_bucket" "app_data" {
 resource "aws_s3_bucket_public_access_block" "app_data" {
   bucket = aws_s3_bucket.app_data.id
 
-  # SEEDED VULN #4 — public-access guardrails disabled (Checkov target).
-  # Was all `true`; flipping to `false` lets the bucket be made public.
-  block_public_acls       = false
-  block_public_policy     = false
-  ignore_public_acls      = false
-  restrict_public_buckets = false
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "app_data" {

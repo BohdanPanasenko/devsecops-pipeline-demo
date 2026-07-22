@@ -39,5 +39,6 @@ def test_good_login_lists_items(client):
         follow_redirects=True,
     )
     assert resp.status_code == 200
-    assert b"Laptop" in resp.data
-    assert b"Monitor" in resp.data
+    assert b"Laptop" in resp.data       # alice's own item
+    assert b"Keyboard" in resp.data     # alice's own item
+    assert b"Monitor" not in resp.data  # bob's item must NOT be visible (access control)
