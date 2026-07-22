@@ -153,5 +153,7 @@ scanner is expected to catch it, and the expected severity.
   Scripting (Reflected)` (rule 40012) and `SQL Injection` (rule 40018) as High in
   the Security tab. The same SQLi and XSS also appear from **CodeQL**, confirming
   SAST + DAST catch the identical flaws from opposite ends.
+  
+  <img width="1910" height="407" alt="image" src="https://github.com/user-attachments/assets/d558f9b5-8b80-48c2-8584-96afd43bb849" />
 
-
+  <img width="1366" height="812" alt="image" src="https://github.com/user-attachments/assets/3bb35952-6c45-4e63-a34e-ef20609160bd" />
