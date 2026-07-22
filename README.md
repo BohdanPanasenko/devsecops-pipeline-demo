@@ -30,13 +30,8 @@ Applying the Terraform to a live cloud is intentionally **out of scope**: it is
 "deployment" here is publishing the scanned container image to GHCR (credential-free,
 via the built-in token) — gated on security, not a live infrastructure rollout.
 
-The app itself is tiny on purpose; the value is the pipeline around it — five
-security scanners, enforced quality gates, findings centralized in GitHub's Security
+The app itself is tiny on purpose. The value is the pipeline around it - security scanners, enforced quality gates, findings centralized in GitHub's Security
 tab, and per-run metrics for a **speed-vs-security** analysis.
-
-The guiding question: **can you achieve a high level of security without
-compromising development speed?** — and the pipeline is instrumented to *measure*
-the trade-off, not just assert it.
 
 ## Pipeline overview
 
