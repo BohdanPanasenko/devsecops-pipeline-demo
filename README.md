@@ -30,7 +30,7 @@ scanned but never applied, so there are no cloud credentials in this public repo
 "deployment" here means publishing the scanned container image to GHCR, which uses
 the built-in token and needs no credentials. It's gated on security, not a live rollout.
 
-The app is tiny on purpose. The real value is the pipeline around it: five security
+The app is tiny on purpose. The real value is the pipeline around it: security
 scanners, enforced gates, all findings collected in GitHub's Security tab, and per-run
 metrics for a speed-vs-security look.
 
@@ -62,8 +62,7 @@ flowchart LR
     S -.SARIF.-> ST[(Security tab)]
 ```
 
-Each layer of the stack has its own check: secrets, then your code, then dependencies,
-then infrastructure, then the running app.
+Each layer of the stack has its own check: secrets -> your code -> dependencies -> infrastructure -> the running app.
 
 ## Security stages: what each does and why
 
