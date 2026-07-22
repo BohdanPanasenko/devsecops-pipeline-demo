@@ -1,6 +1,6 @@
 # DevSecOps Pipeline Demo
 
-> A deliberately insecure Flask app secured through a GitHub Actions DevSecOps pipeline — bachelor's thesis project.
+> A deliberately insecure Flask app secured through a GitHub Actions DevSecOps pipeline.
 
 [![CI](https://github.com/BohdanPanasenko/devsecops-pipeline-demo/actions/workflows/ci.yml/badge.svg)](https://github.com/BohdanPanasenko/devsecops-pipeline-demo/actions/workflows/ci.yml)
 
