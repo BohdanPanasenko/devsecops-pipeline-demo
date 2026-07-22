@@ -96,6 +96,14 @@ source-anchored); ZAP (DAST) is URL-based, so a small converter
 ([`scripts/zap_to_sarif.py`](scripts/zap_to_sarif.py)) maps it into SARIF —
 illustrating that code-scanning is built around static, source-located findings.
 
+## Software Bill of Materials (SBOM)
+
+The Trivy job also emits a **CycloneDX SBOM** (`sbom.cdx.json`) — a machine-readable
+inventory of every OS and Python package baked into the container image — uploaded as
+a build artifact on each run. SBOMs are increasingly expected for supply-chain
+transparency: with one, you can answer *"is my image affected by CVE-X?"* by searching
+the inventory instead of guessing.
+
 ## Seeded vulnerabilities
 
 Six vulnerabilities are planted on purpose, each documented in
@@ -117,6 +125,17 @@ A `metrics` job appends one row per run to `metrics.csv` on a dedicated
 findings-by-severity. This is the data backbone for the speed-vs-security analysis —
 early data already shows the *deep* scanners (DAST, SAST) dominate runtime while the
 lightweight ones finish in seconds.
+
+## Automated dependency updates (Dependabot)
+
+[`.github/dependabot.yml`](.github/dependabot.yml) enables **Dependabot** to open
+weekly pull requests when Python packages (`requirements*.txt`) or GitHub Actions have
+newer or security-fixed versions.
+
+This is the **remediation** counterpart to Trivy: Trivy *detects* vulnerable
+dependencies **in-pipeline** and gates the build on them, while Dependabot *proposes
+the fix* as a ready-to-merge PR **out-of-pipeline**. Detection vs. fix. (It will, for
+example, propose upgrading the intentionally outdated `urllib3` — seeded vuln #3.)
 
 ## Running locally
 

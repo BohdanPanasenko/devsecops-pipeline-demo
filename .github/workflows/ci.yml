@@ -109,7 +109,17 @@ jobs:
       - name: Trivy image scan (SARIF)
         run: trivy image --scanners vuln --ignore-unfixed --format sarif --output trivy-image.sarif --exit-code 0 devsecops-demo:latest
 
-      # enforce gates (fail on HIGH/CRITICAL) 
+      # SBOM (CycloneDX) — a machine-readable inventory of everything in the image
+      - name: Generate SBOM (CycloneDX)
+        run: trivy image --format cyclonedx --output sbom.cdx.json devsecops-demo:latest
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: sbom.cdx.json
+
+      # enforce gates (fail on HIGH/CRITICAL)
       - name: Dependency scan — GATE (fail on HIGH/CRITICAL)
         run: trivy fs --scanners vuln --severity HIGH,CRITICAL --exit-code 1 .
 
