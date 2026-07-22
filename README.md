@@ -141,6 +141,11 @@ Example result: the vulnerable `main` build carries **93 findings (17 high)** vs
 remediated build's **56 (2 high)** — remediation removed the seeded high-severity
 vulns, while ZAP's active scan dominates pipeline time regardless.
 
+![Speed vs. security chart](docs/metrics.png)
+
+*Snapshot from `metrics.csv` — 21 pipeline runs, as of 2026-07-22 (`metrics` branch
+`8f05bc2`). Regenerate anytime with the commands above.*
+
 ## Branches: `main` (vulnerable) vs `remediated` (fixed)
 
 - **`main`** keeps the seeded vulnerabilities — its pipeline is **red** (gates block),
