@@ -35,7 +35,8 @@ tab, and per-run metrics for a **speed-vs-security** analysis.
 
 ## Pipeline overview
 
-Every push and pull request to `main` runs eight parallel jobs:
+Every push and pull request to `main` runs the pipeline — seven quality/security jobs
+in parallel, then a metrics job and a security-gated publish:
 
 ```mermaid
 flowchart LR
@@ -56,6 +57,7 @@ flowchart LR
 
     Q --> M
     S --> M[Metrics: duration + findings]
+    S --> P[Publish image → GHCR<br/>only if all gates pass]
     S -.SARIF.-> ST[(Security tab)]
 ```
 
@@ -72,8 +74,9 @@ infrastructure → running app.**
 | **IaC scan** | Checkov | Terraform for insecure cloud configuration | Catches misconfigurations (e.g. a public S3 bucket) *before* deploy |
 | **DAST** | OWASP ZAP | The *running* app, attacked from the outside | Finds runtime flaws (XSS, injection, headers) only visible when live |
 
-Two supporting jobs round it out: **Lint & Test** (ruff + pytest) and **Terraform
-validate** (format + validity), plus a **Metrics** job (below).
+Rounding it out: **Lint & Test** (ruff + pytest), **Terraform validate**, a
+**Metrics** job (below), and a **security-gated `publish`** that releases the
+container image to GHCR only when every gate passes.
 
 ## Gate policy
 
@@ -123,8 +126,30 @@ severity. Notably:
 A `metrics` job appends one row per run to `metrics.csv` on a dedicated
 [`metrics`](../../tree/metrics) branch: per-stage duration, total pipeline time, and
 findings-by-severity. This is the data backbone for the speed-vs-security analysis —
-early data already shows the *deep* scanners (DAST, SAST) dominate runtime while the
+the data shows the *deep* scanners (DAST ~160s, SAST ~58s) dominate runtime while the
 lightweight ones finish in seconds.
+
+Render the chart from the collected data:
+
+```bash
+git show origin/metrics:metrics.csv > metrics.csv
+pip install matplotlib
+python scripts/plot_metrics.py            # writes metrics.png
+```
+
+Example result: the vulnerable `main` build carries **93 findings (17 high)** vs the
+remediated build's **56 (2 high)** — remediation removed the seeded high-severity
+vulns, while ZAP's active scan dominates pipeline time regardless.
+
+## Branches: `main` (vulnerable) vs `remediated` (fixed)
+
+- **`main`** keeps the seeded vulnerabilities — its pipeline is **red** (gates block),
+  demonstrating detection and enforcement.
+- **`remediated`** fixes all six — its pipeline is **green**, so the gated `publish`
+  job runs and releases the image to
+  [GHCR&nbsp;Packages](https://github.com/BohdanPanasenko/devsecops-pipeline-demo/pkgs/container/devsecops-pipeline-demo).
+
+Together they demonstrate the full **detect → block → fix → deploy** loop.
 
 ## Automated dependency updates (Dependabot)
 
