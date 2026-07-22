@@ -176,6 +176,7 @@ jobs:
 
       - name: ZAP full (active) scan (JSON report)
         run: |
+          chmod 777 .
           docker run --network host -v ${{ github.workspace }}:/zap/wrk/:rw \
             -t ghcr.io/zaproxy/zaproxy:stable \
             zap-full-scan.py -t http://localhost:5000 -J zap.json || true
