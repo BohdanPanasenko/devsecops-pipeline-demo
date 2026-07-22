@@ -48,3 +48,37 @@ https://github.com/BohdanPanasenko/devsecops-pipeline-demo/actions/runs/29792930
 A red build here is **success**: the pipeline detected and blocked the planted
 vulnerabilities. Removing/remediating a vuln returns its stage to green — the
 detection → fix → verified-clean loop.
+
+## Making the gates un-bypassable (branch protection)
+
+Failing checks only *prevent a merge* if the branch is **protected**. Without
+protection, a red pipeline is advisory — someone could still push straight to `main`.
+The recommended `main` configuration (GitHub → Settings → Branches → branch
+protection rule, or a Ruleset):
+
+- **Require a pull request before merging** — no direct pushes to `main`.
+- **Require status checks to pass**, with *"require branches to be up to date"*, and
+  mark these gating jobs as **required**:
+  - `Lint & Test (Python)`
+  - `Validate (Terraform)`
+  - `Secret Scan (Gitleaks)`
+  - `SCA & Image Scan (Trivy)`
+  - `IaC Scan (Checkov)`
+- **Require the CodeQL code-scanning check** (and/or "no new high-severity alerts").
+  This is *how CodeQL enforces* — it doesn't fail the workflow step; instead branch
+  protection blocks the merge on its code-scanning results.
+- **Do not allow bypassing** the above — include administrators.
+
+With these rules plus the security-gated `publish` job, insecure code can neither
+**merge** (branch protection) nor **deploy** (gated publish).
+
+> **Note for this demo repo:** `main` intentionally carries the seeded
+> vulnerabilities, so its checks are red. Enabling "require status checks" would —
+> correctly — block every merge, which is exactly the point but would halt
+> development on this teaching repo. So the configuration is **documented here rather
+> than enforced**. In a real project you would turn it on; the seeded vulns would be
+> fixed on a branch and merged only once green.
+>
+> CodeQL/ZAP are **report-only** (they publish to the Security tab but don't fail the
+> workflow), so they are not listed as required *build* checks — CodeQL is enforced
+> via the code-scanning branch-protection check above instead.
