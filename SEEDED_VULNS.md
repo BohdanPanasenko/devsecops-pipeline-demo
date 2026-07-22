@@ -149,8 +149,9 @@ scanner is expected to catch it, and the expected severity.
 - **Expected severity:** High.
 - **Where to see the finding:** Security → Code scanning (tool `zap`), and the
   DAST job log.
-- **Status:** ✅ Confirmed locally — ZAP full scan reported `Cross Site Scripting
-  (Reflected)` and `SQL Injection`; converter emitted them as High SARIF results.
-  To be re-confirmed by the CI run.
+- **Status:** ✅ Confirmed in CI — the `OWASP ZAP` tool reports `Cross Site
+  Scripting (Reflected)` (rule 40012) and `SQL Injection` (rule 40018) as High in
+  the Security tab. The same SQLi and XSS also appear from **CodeQL**, confirming
+  SAST + DAST catch the identical flaws from opposite ends.
 
 
