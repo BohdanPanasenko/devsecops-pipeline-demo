@@ -159,16 +159,17 @@ high-severity count, and ZAP's active scan stays the slowest part either way.
 Between them they show the whole loop: find the problems, block the build, fix them,
 then deploy.
 
-## Automated dependency updates (Dependabot)
+## Maintenance
 
-[`.github/dependabot.yml`](.github/dependabot.yml) tells **Dependabot** to open weekly
-pull requests when Python packages (`requirements*.txt`) or GitHub Actions have newer
-or security-fixed versions.
+Keeping the app secure over time, not just at one commit, is its own topic, written up
+in [MAINTENANCE.md](MAINTENANCE.md): fix timelines by severity, when the base image is
+refreshed, what to do if a secret leaks, and a weekly scheduled re-scan so new CVEs
+surface even when nobody has pushed.
 
-It's the fix side that pairs with Trivy's detect side. Trivy finds vulnerable
-dependencies during the pipeline and can block on them, while Dependabot opens a
-ready-to-merge PR with the upgrade, outside the pipeline. (For example, it'll suggest
-bumping the intentionally old `urllib3` from seeded vuln #3.)
+**Dependabot** ([`.github/dependabot.yml`](.github/dependabot.yml)) opens
+weekly PRs to update outdated or vulnerable pip packages and GitHub Actions. It's the
+fix side that pairs with Trivy's detection (for example, it proposes bumping the
+intentionally old `urllib3` from seeded vuln #3).
 
 ## Running locally
 
