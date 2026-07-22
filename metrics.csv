@@ -1,3 +1,4 @@
 timestamp,run_id,sha,total_sec,lint_test_sec,terraform_sec,gitleaks_sec,codeql_sec,trivy_sec,checkov_sec,zap_sec,findings_total,critical,high,medium,low,unknown
 2026-07-22T01:26:47Z,29882984392,5415bb7,160,13,11,11,58,44,46,160,93,0,17,31,34,11
 2026-07-22T02:27:14Z,29885729232,bb7e664,166,10,12,15,63,33,43,166,93,0,17,31,34,11
+2026-07-22T02:28:26Z,29885788622,ec2af83,155,12,13,20,65,34,45,154,93,0,17,31,34,11
