@@ -13,11 +13,26 @@
 
 ## What this is
 
-A minimal web app used as a **vehicle** to demonstrate security integrated across
-the whole software lifecycle — *design, development, testing, deployment* — the
-DevSecOps approach. The app itself is tiny on purpose; the value is the pipeline
-around it: five security scanners, enforced quality gates, findings centralized in
-GitHub's Security tab, and per-run metrics for a **speed-vs-security** analysis.
+A minimal web app used as a **vehicle** to demonstrate security controls mapped to
+the software lifecycle — the DevSecOps approach:
+
+- **Development** — SAST (CodeQL), secret scanning (Gitleaks), lint & tests
+- **Testing** — DAST against the running app (OWASP ZAP)
+- **Deployment stage** — the deployable artifacts are scanned (container image via
+  Trivy, infrastructure-as-code via Checkov), then a **security-gated publish**
+  releases the image to GitHub Container Registry (GHCR) — but **only if every gate
+  passes**. While the seeded vulnerabilities block the build, this step is *skipped*:
+  the pipeline refuses to release insecure code.
+- **Design** — threat identification and OWASP mapping ([THREAT_MODEL.md](THREAT_MODEL.md))
+
+Applying the Terraform to a live cloud is intentionally **out of scope**: it is
+*scanned, never applied*, so no cloud credentials live in this public repo. The
+"deployment" here is publishing the scanned container image to GHCR (credential-free,
+via the built-in token) — gated on security, not a live infrastructure rollout.
+
+The app itself is tiny on purpose; the value is the pipeline around it — five
+security scanners, enforced quality gates, findings centralized in GitHub's Security
+tab, and per-run metrics for a **speed-vs-security** analysis.
 
 The guiding question: **can you achieve a high level of security without
 compromising development speed?** — and the pipeline is instrumented to *measure*
