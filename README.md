@@ -1,41 +1,43 @@
 # DevSecOps Pipeline Demo
 
-> A deliberately insecure Flask app secured through a GitHub Actions DevSecOps pipeline.
+> A deliberately insecure Flask app, secured through a GitHub Actions DevSecOps pipeline.
 
 [![CI](https://github.com/BohdanPanasenko/devsecops-pipeline-demo/actions/workflows/ci.yml/badge.svg)](https://github.com/BohdanPanasenko/devsecops-pipeline-demo/actions/workflows/ci.yml)
 
 > ℹ️ **The badge shows "failing" on purpose.** The pipeline enforces security gates,
-> and the app ships with *intentionally planted* vulnerabilities — so the gates
-> correctly **block the build**. A red pipeline here means the controls are working.
+> and the app ships with vulnerabilities that were planted deliberately, so the gates
+> correctly block the build. A red pipeline here means the checks are doing their job.
 > See [Gate policy](#gate-policy) and [SEEDED_VULNS.md](SEEDED_VULNS.md).
 
 ---
 
 ## What this is
 
-A minimal web app used as a **vehicle** to demonstrate security controls mapped to
-the software lifecycle — the DevSecOps approach:
+A small web app that acts as a testbed for running security checks across the whole
+software lifecycle (the DevSecOps idea):
 
-- **Development** — SAST (CodeQL), secret scanning (Gitleaks), lint & tests
-- **Testing** — DAST against the running app (OWASP ZAP)
-- **Deployment stage** — the deployable artifacts are scanned (container image via
-  Trivy, infrastructure-as-code via Checkov), then a **security-gated publish**
-  releases the image to GitHub Container Registry (GHCR) — but **only if every gate
-  passes**. While the seeded vulnerabilities block the build, this step is *skipped*:
-  the pipeline refuses to release insecure code.
-- **Design** — threat identification and OWASP mapping ([THREAT_MODEL.md](THREAT_MODEL.md))
+- **Development:** SAST (CodeQL), secret scanning (Gitleaks), lint and tests
+- **Testing:** DAST against the running app (OWASP ZAP)
+- **Deployment:** the things you'd actually ship get scanned (the container image with
+  Trivy, the infrastructure code with Checkov), and then a security-gated publish
+  releases the image to GitHub Container Registry (GHCR), but only if every gate
+  passes. While the seeded vulnerabilities block the build, that step is skipped, so
+  the pipeline won't release insecure code.
+- **Design:** threat identification and OWASP mapping ([THREAT_MODEL.md](THREAT_MODEL.md))
 
-Applying the Terraform to a live cloud is intentionally **out of scope**: it is
-*scanned, never applied*, so no cloud credentials live in this public repo. The
-"deployment" here is publishing the scanned container image to GHCR (credential-free,
-via the built-in token) — gated on security, not a live infrastructure rollout.
+Actually applying the Terraform to a real cloud is out of scope on purpose. It's
+scanned but never applied, so there are no cloud credentials in this public repo. The
+"deployment" here means publishing the scanned container image to GHCR, which uses
+the built-in token and needs no credentials. It's gated on security, not a live rollout.
 
-The app itself is tiny on purpose. The value is the pipeline around it - security scanners, enforced quality gates, findings centralized in GitHub's Security
-tab, and per-run metrics for a **speed-vs-security** analysis.
+The app is tiny on purpose. The real value is the pipeline around it: security
+scanners, enforced gates, all findings collected in GitHub's Security tab, and per-run
+metrics for a speed-vs-security look.
 
 ## Pipeline overview
 
-Every push and pull request to `main` runs eight parallel jobs:
+Every push and pull request to `main` runs the pipeline. Seven quality and security
+jobs run in parallel, then a metrics job and a security-gated publish:
 
 ```mermaid
 flowchart LR
@@ -47,95 +49,126 @@ flowchart LR
     end
 
     subgraph S[Security scanning]
-        G[Gitleaks — secrets]
-        C[CodeQL — SAST]
-        TR[Trivy — SCA + image]
-        CK[Checkov — IaC]
-        Z[OWASP ZAP — DAST]
+        G[Gitleaks: secrets]
+        C[CodeQL: SAST]
+        TR[Trivy: SCA + image]
+        CK[Checkov: IaC]
+        Z[OWASP ZAP: DAST]
     end
 
     Q --> M
     S --> M[Metrics: duration + findings]
+    S --> P[Publish to GHCR<br/>only if all gates pass]
     S -.SARIF.-> ST[(Security tab)]
 ```
 
-Each layer of the stack has a matching control: **secrets → code → dependencies →
-infrastructure → running app.**
+Each layer of the stack has its own check: secrets -> your code -> dependencies -> infrastructure -> the running app.
 
-## Security stages — what each does and why
+## Security stages: what each does and why
 
 | Stage | Tool | What it checks | Why |
 |-------|------|----------------|-----|
-| **Secret scan** | Gitleaks | Full git history for hardcoded credentials | Leaked keys grant instant access; catch them before they spread |
-| **SAST** | CodeQL | Your source code for vulnerable patterns (e.g. SQL injection) | Finds bugs *in code you wrote* by tracing tainted data to dangerous sinks |
+| **Secret scan** | Gitleaks | Full git history for hardcoded credentials | Leaked keys give instant access, so it's worth catching them early |
+| **SAST** | CodeQL | Your source code for vulnerable patterns (e.g. SQL injection) | Finds bugs in code you wrote, by following untrusted input to dangerous spots |
 | **SCA + image** | Trivy | Dependencies and the Docker image for known CVEs | You inherit vulnerabilities from third-party code and base images |
-| **IaC scan** | Checkov | Terraform for insecure cloud configuration | Catches misconfigurations (e.g. a public S3 bucket) *before* deploy |
-| **DAST** | OWASP ZAP | The *running* app, attacked from the outside | Finds runtime flaws (XSS, injection, headers) only visible when live |
+| **IaC scan** | Checkov | Terraform for insecure cloud settings | Catches misconfigurations (like a public S3 bucket) before anything is deployed |
+| **DAST** | OWASP ZAP | The running app, attacked from the outside | Finds runtime problems (XSS, injection, missing headers) you only see when it's live |
 
-Two supporting jobs round it out: **Lint & Test** (ruff + pytest) and **Terraform
-validate** (format + validity), plus a **Metrics** job (below).
+There are also a few supporting jobs: **Lint & Test** (ruff + pytest), **Terraform
+validate**, the **Metrics** job (below), and the **security-gated `publish`** that
+releases the image to GHCR only when every gate passes.
 
 ## Gate policy
 
-The pipeline **fails the build on high/critical findings** and **warns on medium**.
-Because each scanner expresses severity differently (Trivy has CVSS levels, Checkov
-is pass/fail, CodeQL/ZAP live in the Security tab), the policy is applied per tool.
-Full details and the per-tool mapping: [GATE_POLICY.md](GATE_POLICY.md).
+The pipeline fails the build on high or critical findings, and just warns on medium.
+Each scanner reports severity a little differently (Trivy has CVSS levels, Checkov is
+pass/fail, CodeQL and ZAP report into the Security tab), so the policy is applied per
+tool. The full breakdown is in [GATE_POLICY.md](GATE_POLICY.md).
 
 ## Security reporting (SARIF)
 
-All five scanners emit their findings as **SARIF** — an industry-standard format —
-which is uploaded to GitHub's **Security → Code scanning** tab. This gives one
-unified dashboard for secrets, SAST, SCA, IaC, and DAST findings, each severity-
-tagged and linked to the offending line/URL.
+All five scanners write their findings as **SARIF**, a standard format GitHub
+understands, and upload it to the **Security > Code scanning** tab. That way you see
+secrets, SAST, SCA, IaC, and DAST findings in one place, each tagged with a severity
+and linked to the line or URL it came from.
 
-The pattern (see `ci.yml`): each job generates SARIF, then uploads it with
-`if: always()` so findings publish *even when the gate fails*, using a job-level
-`security-events: write` permission. Four tools map cleanly (their findings are
-source-anchored); ZAP (DAST) is URL-based, so a small converter
-([`scripts/zap_to_sarif.py`](scripts/zap_to_sarif.py)) maps it into SARIF —
-illustrating that code-scanning is built around static, source-located findings.
+How it works (see `ci.yml`): each job creates its SARIF and uploads it with
+`if: always()`, so findings still show up even when the gate fails, and the job is
+given `security-events: write` permission. Four of the tools fit neatly because their
+findings point at a file and line. ZAP (DAST) points at URLs instead, so a small
+converter ([`scripts/zap_to_sarif.py`](scripts/zap_to_sarif.py)) turns its output into
+SARIF. That gap is a nice detail on its own: code scanning is really built around
+findings that live in source code.
 
 ## Software Bill of Materials (SBOM)
 
-The Trivy job also emits a **CycloneDX SBOM** (`sbom.cdx.json`) — a machine-readable
-inventory of every OS and Python package baked into the container image — uploaded as
-a build artifact on each run. SBOMs are increasingly expected for supply-chain
-transparency: with one, you can answer *"is my image affected by CVE-X?"* by searching
-the inventory instead of guessing.
+The Trivy job also produces a **CycloneDX SBOM** (`sbom.cdx.json`), a machine-readable
+list of every OS and Python package inside the container image, saved as a build
+artifact on each run. SBOMs are increasingly expected for supply-chain transparency:
+with one, you can just search the list to answer "is my image affected by CVE-X?"
+instead of guessing.
 
 ## Seeded vulnerabilities
 
-Six vulnerabilities are planted on purpose, each documented in
-[SEEDED_VULNS.md](SEEDED_VULNS.md) with the scanner that catches it and the expected
-severity. Notably:
+Six vulnerabilities are planted on purpose. Each one is written up in
+[SEEDED_VULNS.md](SEEDED_VULNS.md) with the scanner that should catch it and how
+serious it is. A couple stand out:
 
-- **#1 SQL injection** and **#6 reflected XSS** are caught by **both** CodeQL
-  (statically) and ZAP (dynamically) — SAST and DAST converging on the same flaw
-  from opposite ends.
-- **#5 broken access control** is the deliberate **blind spot**: a real, high-impact
-  authorization flaw that **no scanner catches**, because it's business logic. It
-  demonstrates that automated scanning *complements* — never *replaces* — human
-  review and threat modeling. A fully green pipeline would still ship this flaw.
+- **#1 SQL injection** and **#6 reflected XSS** are caught by *both* CodeQL (reading
+  the code) and ZAP (attacking the running app), so you see the same flaw found two
+  different ways.
+- **#5 broken access control** is the deliberate blind spot: a real, high-impact flaw
+  that no scanner catches, because it's business logic. It's a reminder that automated
+  scanning helps but doesn't replace human review and threat modeling. A fully green
+  pipeline could still ship this one.
 
 ## Metrics (speed vs. security)
 
-A `metrics` job appends one row per run to `metrics.csv` on a dedicated
+A `metrics` job adds one row per run to `metrics.csv` on a separate
 [`metrics`](../../tree/metrics) branch: per-stage duration, total pipeline time, and
-findings-by-severity. This is the data backbone for the speed-vs-security analysis —
-early data already shows the *deep* scanners (DAST, SAST) dominate runtime while the
-lightweight ones finish in seconds.
+findings by severity. This is the data behind the speed-vs-security analysis, and it
+already shows the heavier scanners (DAST around 160s, SAST around 58s) taking most of
+the time while the lighter ones finish in seconds.
 
-## Automated dependency updates (Dependabot)
+Render the chart from the collected data:
 
-[`.github/dependabot.yml`](.github/dependabot.yml) enables **Dependabot** to open
-weekly pull requests when Python packages (`requirements*.txt`) or GitHub Actions have
-newer or security-fixed versions.
+```bash
+git show origin/metrics:metrics.csv > metrics.csv
+pip install matplotlib
+python scripts/plot_metrics.py            # writes metrics.png
+```
 
-This is the **remediation** counterpart to Trivy: Trivy *detects* vulnerable
-dependencies **in-pipeline** and gates the build on them, while Dependabot *proposes
-the fix* as a ready-to-merge PR **out-of-pipeline**. Detection vs. fix. (It will, for
-example, propose upgrading the intentionally outdated `urllib3` — seeded vuln #3.)
+For example: the vulnerable `main` build has **93 findings (17 high)**, while the
+remediated build has **56 (2 high)**. Fixing the seeded vulns clearly drops the
+high-severity count, and ZAP's active scan stays the slowest part either way.
+
+![Speed vs. security chart](docs/metrics.png)
+
+*Snapshot from `metrics.csv`, 21 pipeline runs, as of 2026-07-22 (`metrics` branch
+`8f05bc2`). You can regenerate it anytime with the commands above.*
+
+## Branches: `main` (vulnerable) vs `remediated` (fixed)
+
+- **`main`** keeps the seeded vulnerabilities, so its pipeline is **red** (the gates
+  block it). That's the detection and enforcement side.
+- **`remediated`** fixes all six, so its pipeline is **green** and the gated `publish`
+  job runs, releasing the image to
+  [GHCR&nbsp;Packages](https://github.com/BohdanPanasenko/devsecops-pipeline-demo/pkgs/container/devsecops-pipeline-demo).
+
+Between them they show the whole loop: find the problems, block the build, fix them,
+then deploy.
+
+## Maintenance
+
+Keeping the app secure over time, not just at one commit, is its own topic, written up
+in [MAINTENANCE.md](MAINTENANCE.md): fix timelines by severity, when the base image is
+refreshed, what to do if a secret leaks, and a weekly scheduled re-scan so new CVEs
+surface even when nobody has pushed.
+
+**Dependabot** ([`.github/dependabot.yml`](.github/dependabot.yml)) opens
+weekly PRs to update outdated or vulnerable pip packages and GitHub Actions. It's the
+fix side that pairs with Trivy's detection (for example, it proposes bumping the
+intentionally old `urllib3` from seeded vuln #3).
 
 ## Running locally
 
@@ -154,6 +187,5 @@ ruff check .
 
 ## Tech stack
 
-Python · Flask · SQLite · gunicorn · Docker / docker-compose · Terraform (AWS S3,
-scan-only — never deployed) · GitHub Actions · Gitleaks · CodeQL · Trivy · Checkov ·
-OWASP ZAP.
+Python, Flask, SQLite, gunicorn, Docker / docker-compose, Terraform (AWS S3, scan-only,
+never deployed), GitHub Actions, Gitleaks, CodeQL, Trivy, Checkov, OWASP ZAP.

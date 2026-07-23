@@ -1,15 +1,15 @@
 # Gate Policy
 
-**Policy:** the pipeline **fails the build on high/critical findings** and **warns
-(reports without failing) on medium**. This is what turns the scanners from passive
-observers into an enforced quality gate.
+The rule is simple: the pipeline **fails the build on high or critical findings**, and
+just **warns on medium** (they get reported, but don't block). That's what turns the
+scanners from passive checkers into a gate that can actually stop a build.
 
-## Report-only → enforced
+## From report-only to enforced
 
 Each security stage was first added in **report-only** mode (findings printed, build
-stayed green) so the stage could be wired in and validated. Step 7 flipped the
-serious findings to **enforced** (non-zero exit → red check → blocked merge once
-branch protection is on). The value of report-only first: you can prove a stage
+stayed green) so we could wire it in and confirm it worked. Step 7 then switched the
+serious findings to **enforced**: a non-zero exit turns the check red, which blocks
+the merge once branch protection is on. The value of report-only first: you can prove a stage
 *works* before you let it *block*.
 
 ## How each tool expresses severity (and how we gate it)
@@ -45,9 +45,9 @@ https://github.com/BohdanPanasenko/devsecops-pipeline-demo/actions/runs/29792930
 - ❌ IaC Scan (Checkov) — `CKV_AWS_53/54/55/56` failed (hard-fail) - https://github.com/BohdanPanasenko/devsecops-pipeline-demo/actions/runs/29792930672/job/88518347555
 - ✅ SAST (CodeQL), DAST (ZAP), Lint & Test, Validate (Terraform)
 
-A red build here is **success**: the pipeline detected and blocked the planted
-vulnerabilities. Removing/remediating a vuln returns its stage to green — the
-detection → fix → verified-clean loop.
+A red build here is a **good** sign: the pipeline spotted the planted vulnerabilities
+and blocked them. Fixing a vulnerability turns its stage green again. That's exactly
+what the `remediated` branch shows: with all of them fixed, the whole pipeline passes.
 
 ## Making the gates un-bypassable (branch protection)
 
