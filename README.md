@@ -122,6 +122,15 @@ serious it is. A couple stand out:
   scanning helps but doesn't replace human review and threat modeling. A fully green
   pipeline could still ship this one.
 
+## Penetration testing
+
+The penetration testing here is automated, done by the **ZAP active scan** (`zap-full-scan.py`).
+Unlike a passive scan, it actually fires attack payloads at the running app, so it
+exploits real flaws rather than just noting them. It confirms the SQL injection (#1)
+and reflected XSS (#6) by attacking them at runtime, which is why those two show up
+from both ZAP and CodeQL. Each exploited flaw is written up in
+[SEEDED_VULNS.md](SEEDED_VULNS.md).
+
 ## Metrics (speed vs. security)
 
 A `metrics` job adds one row per run to `metrics.csv` on a separate

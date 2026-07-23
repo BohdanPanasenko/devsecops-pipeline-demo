@@ -7,6 +7,11 @@ says what the flaw is, which scanner should catch it, and how serious it is.
 All of these are fixed on the `remediated` branch, where the pipeline passes every
 gate. `main` keeps them on purpose, so the scanners always have something to find.
 
+The two that can be exploited at runtime, the SQL injection (#1) and the reflected
+XSS (#6), are what the **ZAP active scan** attacks directly. That scan is the
+project's automated penetration testing, and these write-ups are the exploits it
+confirms.
+
 ---
 
 ## #1 — SQL Injection
