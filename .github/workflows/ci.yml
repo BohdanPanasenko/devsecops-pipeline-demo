@@ -261,6 +261,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write      # OIDC token for keyless cosign signing + provenance
+      attestations: write  # for actions/attest-build-provenance
     steps:
       - uses: actions/checkout@v4
 
@@ -268,10 +270,35 @@ jobs:
         run: echo "${{ github.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build and push image to GHCR
+        id: build
         run: |
           REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           IMAGE="ghcr.io/${REPO}"
           docker build -t "${IMAGE}:${{ github.sha }}" -t "${IMAGE}:latest" .
           docker push "${IMAGE}:${{ github.sha }}"
           docker push "${IMAGE}:latest"
-          echo "Published ${IMAGE}:${{ github.sha }}"
+          REF=$(docker inspect --format='{{index .RepoDigests 0}}' "${IMAGE}:${{ github.sha }}")
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+          echo "ref=$REF" >> "$GITHUB_OUTPUT"       # ghcr.io/owner/repo@sha256:...
+          echo "sha=${REF#*@}" >> "$GITHUB_OUTPUT"  # sha256:...
+          echo "Published $REF"
+
+      # --- Supply chain: sign the image and attach SLSA provenance (keyless) ---
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign the image (keyless, via GitHub OIDC)
+        run: cosign sign --yes "${{ steps.build.outputs.ref }}"
+
+      - name: Generate SLSA build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ${{ steps.build.outputs.image }}
+          subject-digest: ${{ steps.build.outputs.sha }}
+          push-to-registry: true
+
+      - name: Verify the signature (the deploy-time check)
+        run: |
+          cosign verify "${{ steps.build.outputs.ref }}" \
+            --certificate-identity-regexp "^https://github.com/${{ github.repository }}/" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
