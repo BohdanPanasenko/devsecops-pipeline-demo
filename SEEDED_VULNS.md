@@ -1,9 +1,11 @@
 # Seeded Vulnerabilities
 
-This app is **deliberately insecure**. The vulnerabilities below were planted on
-purpose to demonstrate that each stage of the CI/CD security pipeline detects the
-class of problem it is responsible for. Each entry lists what the flaw is, which
-scanner is expected to catch it, and the expected severity.
+This app is insecure on purpose. Each vulnerability below was planted to check that a
+stage of the pipeline really catches the kind of problem it's meant to. Every entry
+says what the flaw is, which scanner should catch it, and how serious it is.
+
+All of these are fixed on the `remediated` branch, where the pipeline passes every
+gate. `main` keeps them on purpose, so the scanners always have something to find.
 
 ---
 
