@@ -190,8 +190,8 @@ high-severity count, and ZAP's active scan stays the slowest part either way.
 
 ![Speed vs. security chart](docs/metrics.png)
 
-*Snapshot from `metrics.csv`, 21 pipeline runs, as of 2026-07-22 (`metrics` branch
-`8f05bc2`). You can regenerate it anytime with the commands above.*
+*Snapshot from `metrics.csv`, 40 pipeline runs, as of 2026-07-24 (`metrics` branch
+`e0cd466`). You can regenerate it anytime with the commands above.*
 
 ## Maintenance
 
