@@ -108,6 +108,31 @@ artifact on each run. SBOMs are increasingly expected for supply-chain transpare
 with one, you can just search the list to answer "is my image affected by CVE-X?"
 instead of guessing.
 
+## Signing and provenance (supply chain)
+
+On the green path, the `publish` job doesn't just push the image. It also signs it and
+records how it was built, so whoever deploys it can trust it:
+
+- **Cosign** signs the image without a stored key. It uses GitHub's OIDC identity
+  instead, so there's no signing key to leak. The signature effectively says "built
+  and signed by this repo's CI workflow," and it's recorded in a public log.
+- **SLSA provenance** (via `actions/attest-build-provenance`) attaches a signed record
+  of the build: which repo, commit, and workflow produced the image.
+- The job then runs `cosign verify` as a deploy-time check, so only a properly signed
+  image passes.
+
+This only runs on the `remediated` branch, because you only sign images that cleared
+every gate. It's the last piece of the supply-chain story: the SBOM says what's inside,
+the signature says it's authentic, the provenance says where it came from, and the
+verify step confirms all that before the image is trusted for deploy.
+
+Verify it yourself:
+
+```bash
+gh attestation verify oci://ghcr.io/bohdanpanasenko/devsecops-pipeline-demo:latest \
+  --repo BohdanPanasenko/devsecops-pipeline-demo
+```
+
 ## Seeded vulnerabilities
 
 Six vulnerabilities are planted on purpose. Each one is written up in
