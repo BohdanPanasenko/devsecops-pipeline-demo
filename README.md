@@ -34,6 +34,18 @@ The app is tiny on purpose. The real value is the pipeline around it: security
 scanners, enforced gates, all findings collected in GitHub's Security tab, and per-run
 metrics for a speed-vs-security look.
 
+## The two branches: `main` vs `remediated`
+
+The demo lives on two branches, and the rest of this README refers to both:
+
+- **`main`** keeps the seeded vulnerabilities, so its pipeline is **red** (the gates
+  block it). That's the detection and enforcement side.
+- **`remediated`** fixes all six, so its pipeline is **green** and the gated `publish`
+  job runs, releasing the image to
+  [GHCR&nbsp;Packages](https://github.com/BohdanPanasenko/devsecops-pipeline-demo/pkgs/container/devsecops-pipeline-demo).
+
+Together they show the whole loop: find the problems, block the build, fix them, then deploy.
+
 ## Pipeline overview
 
 Every push and pull request to `main` runs the pipeline. Seven quality and security
@@ -180,17 +192,6 @@ high-severity count, and ZAP's active scan stays the slowest part either way.
 
 *Snapshot from `metrics.csv`, 21 pipeline runs, as of 2026-07-22 (`metrics` branch
 `8f05bc2`). You can regenerate it anytime with the commands above.*
-
-## Branches: `main` (vulnerable) vs `remediated` (fixed)
-
-- **`main`** keeps the seeded vulnerabilities, so its pipeline is **red** (the gates
-  block it). That's the detection and enforcement side.
-- **`remediated`** fixes all six, so its pipeline is **green** and the gated `publish`
-  job runs, releasing the image to
-  [GHCR&nbsp;Packages](https://github.com/BohdanPanasenko/devsecops-pipeline-demo/pkgs/container/devsecops-pipeline-demo).
-
-Between them they show the whole loop: find the problems, block the build, fix them,
-then deploy.
 
 ## Maintenance
 
