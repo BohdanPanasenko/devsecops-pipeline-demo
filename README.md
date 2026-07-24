@@ -44,8 +44,6 @@ The demo lives on two branches, and the rest of this README refers to both:
   job runs, releasing the image to
   [GHCR&nbsp;Packages](https://github.com/BohdanPanasenko/devsecops-pipeline-demo/pkgs/container/devsecops-pipeline-demo).
 
-Together they show the whole loop: find the problems, block the build, fix them, then deploy.
-
 ## Pipeline overview
 
 Every push and pull request to `main` runs the pipeline. Seven quality and security
