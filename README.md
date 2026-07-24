@@ -40,7 +40,7 @@ The demo lives on two branches, and the rest of this README refers to both:
 
 - **`main`** keeps the seeded vulnerabilities, so its pipeline is **red** (the gates
   block it). That's the detection and enforcement side.
-- **`remediated`** fixes all six, so its pipeline is **green** and the gated `publish`
+- **`remediated`** fixes all the vulnerabilities, so its pipeline is **green** and the gated `publish`
   job runs, releasing the image to
   [GHCR&nbsp;Packages](https://github.com/BohdanPanasenko/devsecops-pipeline-demo/pkgs/container/devsecops-pipeline-demo).
 
