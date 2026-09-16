@@ -207,7 +207,7 @@ intentionally old `urllib3` from seeded vuln #3).
 
 ```bash
 # App (via Docker)
-docker compose up -d          # http://127.0.0.1:5000  (login: alice / password123)
+docker compose up -d          # http://127.0.0.1:5000  (login: bob / hunter2)
 
 # Or directly
 python -m venv .venv && .venv/Scripts/pip install -r requirements.txt -r requirements-dev.txt
